@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBoard Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span class="logo-text">TaskBoard <span class="logo-accent">Pro</span></span>
+            </div>
+            <div class="project-dropdown" id="projectDropdown">
+                <button class="project-dropdown-btn" onclick="toggleDropdown('projectDropdownMenu')">
+                    <span>Project Alpha</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="dropdown-menu" id="projectDropdownMenu">
+                    <a href="#" class="dropdown-item active" onclick="selectProject(this, event)">Project Alpha</a>
+                    <a href="#" class="dropdown-item" onclick="selectProject(this, event)">Project Beta</a>
+                    <a href="#" class="dropdown-item" onclick="selectProject(this, event)">Marketing Campaign</a>
+                    <a href="#" class="dropdown-item" onclick="selectProject(this, event)">Mobile App v2</a>
+                </div>
+            </div>
+        </div>
+        <div class="navbar-right">
+            <div class="search-bar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Search tasks..." id="searchInput" oninput="filterBySearch()">
+            </div>
+            <button class="nav-icon-btn" id="notifBtn" onclick="toggleDropdown('notifDropdown')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="notif-badge">3</span>
+            </button>
+            <div class="dropdown-menu notif-dropdown" id="notifDropdown">
+                <div class="dropdown-header">Notifications</div>
+                <a href="#" class="dropdown-item notif-item">
+                    <strong>Sarah</strong> moved "API Integration" to In Review
+                    <small>2 min ago</small>
+                </a>
+                <a href="#" class="dropdown-item notif-item">
+                    <strong>Mike</strong> commented on "Database Schema"
+                    <small>15 min ago</small>
+                </a>
+                <a href="#" class="dropdown-item notif-item">
+                    <strong>Emily</strong> assigned you to "UI Redesign"
+                    <small>1 hour ago</small>
+                </a>
+            </div>
+            <div class="user-avatar" title="Talha Khan">TK</div>
+        </div>
+    </nav>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Projects</h3>
+                <ul class="sidebar-list">
+                    <li class="sidebar-item active"><span class="project-color" style="background:#4F46E5"></span>Project Alpha</li>
+                    <li class="sidebar-item"><span class="project-color" style="background:#10B981"></span>Project Beta</li>
+                    <li class="sidebar-item"><span class="project-color" style="background:#F59E0B"></span>Marketing Campaign</li>
+                    <li class="sidebar-item"><span class="project-color" style="background:#EF4444"></span>Mobile App v2</li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Team Members</h3>
+                <ul class="sidebar-list team-list">
+                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#4F46E5">TK</span>Talha Khan</li>
+                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#10B981">SM</span>Sarah Miller</li>
+                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#F59E0B">MJ</span>Mike Johnson</li>
+                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#EF4444">EW</span>Emily Wang</li>
+                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#8B5CF6">AR</span>Alex Rivera</li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Filter by Label</h3>
+                <div class="label-filters">
+                    <button class="label-filter-btn active" data-label="all" onclick="filterByLabel('all', this)">All</button>
+                    <button class="label-filter-btn" data-label="Frontend" onclick="filterByLabel('Frontend', this)"><span class="label-dot" style="background:#3B82F6"></span>Frontend</button>
+                    <button class="label-filter-btn" data-label="Backend" onclick="filterByLabel('Backend', this)"><span class="label-dot" style="background:#10B981"></span>Backend</button>
+                    <button class="label-filter-btn" data-label="Bug" onclick="filterByLabel('Bug', this)"><span class="label-dot" style="background:#EF4444"></span>Bug</button>
+                    <button class="label-filter-btn" data-label="Feature" onclick="filterByLabel('Feature', this)"><span class="label-dot" style="background:#8B5CF6"></span>Feature</button>
+                    <button class="label-filter-btn" data-label="Design" onclick="filterByLabel('Design', this)"><span class="label-dot" style="background:#F59E0B"></span>Design</button>
+                    <button class="label-filter-btn" data-label="DevOps" onclick="filterByLabel('DevOps', this)"><span class="label-dot" style="background:#6366F1"></span>DevOps</button>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Filter by Priority</h3>
+                <div class="label-filters">
+                    <button class="label-filter-btn active" data-priority="all" onclick="filterByPriority('all', this)">All</button>
+                    <button class="label-filter-btn" data-priority="High" onclick="filterByPriority('High', this)"><span class="label-dot" style="background:#EF4444"></span>High</button>
+                    <button class="label-filter-btn" data-priority="Medium" onclick="filterByPriority('Medium', this)"><span class="label-dot" style="background:#F59E0B"></span>Medium</button>
+                    <button class="label-filter-btn" data-priority="Low" onclick="filterByPriority('Low', this)"><span class="label-dot" style="background:#10B981"></span>Low</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Board -->
+        <main class="board" id="board">
+            <!-- Columns are rendered by JS -->
+        </main>
+    </div>
+
+    <!-- Card Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-body">
+                <div class="modal-main">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="modalTitle">Task Title</h2>
+                        <span class="modal-column-badge" id="modalColumn">To Do</span>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Description</h4>
+                        <p class="modal-description" id="modalDescription">Task description goes here.</p>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Activity Log</h4>
+                        <div class="activity-log" id="modalActivity">
+                            <div class="activity-item">
+                                <span class="member-avatar small" style="background:#4F46E5">TK</span>
+                                <div><strong>Talha Khan</strong> created this task <small>2 days ago</small></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Comments</h4>
+                        <div class="comments-section" id="modalComments"></div>
+                        <div class="comment-input-row">
+                            <input type="text" class="comment-input" id="commentInput" placeholder="Write a comment..." onkeypress="if(event.key==='Enter')addComment()">
+                            <button class="btn btn-primary btn-sm" onclick="addComment()">Send</button>
+                        </div>
+                    </div>
+                    <div class="modal-section">
+                        <h4>Attachments</h4>
+                        <div class="attachments" id="modalAttachments">
+                            <div class="attachment-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                <span>design-specs.pdf</span>
+                            </div>
+                            <div class="attachment-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                <span>mockup-v2.png</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-sidebar">
+                    <div class="modal-sidebar-section">
+                        <h5>Assignees</h5>
+                        <div class="modal-assignees" id="modalAssignees"></div>
+                    </div>
+                    <div class="modal-sidebar-section">
+                        <h5>Labels</h5>
+                        <div class="modal-labels" id="modalLabels"></div>
+                    </div>
+                    <div class="modal-sidebar-section">
+                        <h5>Priority</h5>
+                        <div id="modalPriority"></div>
+                    </div>
+                    <div class="modal-sidebar-section">
+                        <h5>Due Date</h5>
+                        <input type="date" class="date-picker" id="modalDueDate">
+                    </div>
+                    <div class="modal-sidebar-section">
+                        <button class="btn btn-danger btn-sm" onclick="deleteCurrentCard()">Delete Card</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Card Modal -->
+    <div class="modal-overlay" id="addCardOverlay" onclick="closeAddCard()">
+        <div class="modal modal-sm" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="closeAddCard()">&times;</button>
+            <h2 class="modal-title">Add New Card</h2>
+            <form id="addCardForm" onsubmit="submitNewCard(event)">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="newCardTitle" required placeholder="Enter task title">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="newCardDesc" rows="3" placeholder="Enter task description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="newCardPriority">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Labels</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label"><input type="checkbox" value="Frontend"> Frontend</label>
+                        <label class="checkbox-label"><input type="checkbox" value="Backend"> Backend</label>
+                        <label class="checkbox-label"><input type="checkbox" value="Bug"> Bug</label>
+                        <label class="checkbox-label"><input type="checkbox" value="Feature" checked> Feature</label>
+                        <label class="checkbox-label"><input type="checkbox" value="Design"> Design</label>
+                        <label class="checkbox-label"><input type="checkbox" value="DevOps"> DevOps</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="newCardDue">
+                </div>
+                <div class="form-group">
+                    <label>Assignee</label>
+                    <select id="newCardAssignee">
+                        <option value="TK" data-color="#4F46E5" data-name="Talha Khan">Talha Khan</option>
+                        <option value="SM" data-color="#10B981" data-name="Sarah Miller">Sarah Miller</option>
+                        <option value="MJ" data-color="#F59E0B" data-name="Mike Johnson">Mike Johnson</option>
+                        <option value="EW" data-color="#EF4444" data-name="Emily Wang">Emily Wang</option>
+                        <option value="AR" data-color="#8B5CF6" data-name="Alex Rivera">Alex Rivera</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Add Card</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
