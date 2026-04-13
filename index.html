@@ -1,234 +1,465 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskBoard Pro</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskBoard Pro</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,sans-serif;background:#f1f5f9;color:#1e293b;min-height:100vh;display:flex;flex-direction:column}
+
+/* Navbar */
+.navbar{background:#4F46E5;color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(79,70,229,.35);position:sticky;top:0;z-index:100}
+.nav-left{display:flex;align-items:center;gap:16px}
+.logo{font-size:20px;font-weight:700;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+.logo svg{width:28px;height:28px}
+.project-dropdown{position:relative}
+.project-btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 14px;border-radius:6px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.project-btn:hover{background:rgba(255,255,255,.25)}
+.project-menu{position:absolute;top:110%;left:0;background:#fff;color:#1e293b;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);min-width:200px;display:none;overflow:hidden;z-index:200}
+.project-menu.open{display:block}
+.project-menu a{display:block;padding:10px 16px;text-decoration:none;color:#1e293b;font-size:14px}
+.project-menu a:hover{background:#f1f5f9}
+.project-menu a.active{background:#eef2ff;color:#4F46E5;font-weight:600}
+.nav-right{display:flex;align-items:center;gap:16px}
+.notif-btn{background:none;border:none;color:#fff;cursor:pointer;position:relative;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.notif-btn:hover{background:rgba(255,255,255,.15)}
+.notif-badge{position:absolute;top:2px;right:2px;background:#ef4444;width:16px;height:16px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:#818cf8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer;border:2px solid rgba(255,255,255,.4)}
+
+/* Board */
+.board-wrapper{flex:1;padding:24px;overflow-x:auto}
+.board{display:flex;gap:20px;min-height:calc(100vh - 104px)}
+
+/* Columns */
+.column{background:#f8fafc;border-radius:12px;min-width:300px;width:300px;flex-shrink:0;display:flex;flex-direction:column;max-height:calc(100vh - 104px);border:1px solid #e2e8f0}
+.column-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e2e8f0}
+.column-title{font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:#475569;display:flex;align-items:center;gap:8px}
+.card-count{background:#e2e8f0;color:#64748b;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.column-body{flex:1;padding:8px;overflow-y:auto;min-height:60px;transition:background .2s}
+.column-body.drag-over{background:#eef2ff;border-radius:0 0 12px 12px}
+
+/* Cards */
+.card{background:#fff;border-radius:8px;padding:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:grab;border:1px solid #e2e8f0;transition:box-shadow .15s,transform .15s}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.card.dragging{opacity:.5;transform:rotate(2deg)}
+.card-labels{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.label{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;color:#fff}
+.label-frontend{background:#8b5cf6}
+.label-backend{background:#0891b2}
+.label-bug{background:#ef4444}
+.label-feature{background:#10b981}
+.card-title{font-weight:600;font-size:14px;margin-bottom:6px;color:#1e293b}
+.card-desc{font-size:12px;color:#64748b;margin-bottom:10px;line-height:1.4}
+.card-meta{display:flex;align-items:center;justify-content:space-between}
+.card-meta-left{display:flex;align-items:center;gap:8px}
+.priority{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase}
+.priority-high{background:#fef2f2;color:#dc2626}
+.priority-medium{background:#fffbeb;color:#d97706}
+.priority-low{background:#f0fdf4;color:#16a34a}
+.due-date{font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:4px}
+.assignee{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+
+/* Add card */
+.add-card-btn{background:none;border:none;padding:10px 16px;color:#64748b;font-size:14px;cursor:pointer;text-align:left;border-radius:8px;margin:4px 8px 8px;display:flex;align-items:center;gap:6px}
+.add-card-btn:hover{background:#e2e8f0;color:#1e293b}
+.add-form{padding:8px;display:none}
+.add-form.open{display:block}
+.add-form input{width:100%;padding:10px 12px;border:2px solid #4F46E5;border-radius:8px;font-size:14px;outline:none;margin-bottom:8px}
+.add-form-actions{display:flex;gap:8px}
+.btn-add{background:#4F46E5;color:#fff;border:none;padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-add:hover{background:#4338ca}
+.btn-cancel{background:none;border:none;padding:8px 12px;font-size:13px;cursor:pointer;color:#64748b}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:640px;box-shadow:0 24px 48px rgba(0,0,0,.2);animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;padding:24px 24px 0}
+.modal-header h2{font-size:20px;font-weight:700;color:#1e293b;flex:1}
+.modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:#94a3b8;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:#f1f5f9;color:#1e293b}
+.modal-body{padding:24px}
+.modal-section{margin-bottom:20px}
+.modal-section label{display:block;font-size:12px;font-weight:600;text-transform:uppercase;color:#64748b;margin-bottom:6px;letter-spacing:.5px}
+.modal-section textarea{width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;resize:vertical;min-height:80px;font-family:inherit;outline:none}
+.modal-section textarea:focus{border-color:#4F46E5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.modal-row{display:flex;gap:16px;flex-wrap:wrap}
+.modal-row .modal-section{flex:1;min-width:140px}
+.modal-section select,.modal-section input[type="date"]{width:100%;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none;background:#fff}
+.modal-section select:focus,.modal-section input[type="date"]:focus{border-color:#4F46E5}
+.modal-labels{display:flex;gap:6px;flex-wrap:wrap}
+.modal-label-btn{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid transparent;opacity:.4;transition:opacity .15s}
+.modal-label-btn.active{opacity:1;border-color:rgba(0,0,0,.15)}
+
+/* Comments */
+.comments-list{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+.comment{display:flex;gap:10px}
+.comment-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.comment-body{flex:1;background:#f8fafc;padding:10px 14px;border-radius:8px}
+.comment-author{font-weight:600;font-size:13px;color:#1e293b}
+.comment-time{font-size:11px;color:#94a3b8;margin-left:8px}
+.comment-text{font-size:13px;color:#475569;margin-top:4px;line-height:1.5}
+.comment-input{display:flex;gap:8px}
+.comment-input input{flex:1;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none}
+.comment-input input:focus{border-color:#4F46E5}
+.comment-input button{background:#4F46E5;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* Drop placeholder */
+.drop-placeholder{border:2px dashed #4F46E5;border-radius:8px;height:4px;margin-bottom:8px;background:#eef2ff;transition:height .15s}
+
+/* Responsive */
+@media(max-width:768px){
+  .board{flex-direction:column}
+  .column{min-width:100%;width:100%;max-height:none}
+  .board-wrapper{padding:12px}
+  .navbar{padding:0 12px}
+  .nav-left{gap:8px}
+  .project-btn span.full{display:none}
+}
+</style>
 </head>
 <body>
-    <!-- Top Navbar -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <div class="logo">
-                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                <span class="logo-text">TaskBoard <span class="logo-accent">Pro</span></span>
-            </div>
-            <div class="project-dropdown" id="projectDropdown">
-                <button class="project-dropdown-btn" onclick="toggleDropdown('projectDropdownMenu')">
-                    <span>Project Alpha</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="dropdown-menu" id="projectDropdownMenu">
-                    <a href="#" class="dropdown-item active" onclick="selectProject(this, event)">Project Alpha</a>
-                    <a href="#" class="dropdown-item" onclick="selectProject(this, event)">Project Beta</a>
-                    <a href="#" class="dropdown-item" onclick="selectProject(this, event)">Marketing Campaign</a>
-                    <a href="#" class="dropdown-item" onclick="selectProject(this, event)">Mobile App v2</a>
-                </div>
-            </div>
-        </div>
-        <div class="navbar-right">
-            <div class="search-bar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" placeholder="Search tasks..." id="searchInput" oninput="filterBySearch()">
-            </div>
-            <button class="nav-icon-btn" id="notifBtn" onclick="toggleDropdown('notifDropdown')">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                <span class="notif-badge">3</span>
-            </button>
-            <div class="dropdown-menu notif-dropdown" id="notifDropdown">
-                <div class="dropdown-header">Notifications</div>
-                <a href="#" class="dropdown-item notif-item">
-                    <strong>Sarah</strong> moved "API Integration" to In Review
-                    <small>2 min ago</small>
-                </a>
-                <a href="#" class="dropdown-item notif-item">
-                    <strong>Mike</strong> commented on "Database Schema"
-                    <small>15 min ago</small>
-                </a>
-                <a href="#" class="dropdown-item notif-item">
-                    <strong>Emily</strong> assigned you to "UI Redesign"
-                    <small>1 hour ago</small>
-                </a>
-            </div>
-            <div class="user-avatar" title="Talha Khan">TK</div>
-        </div>
-    </nav>
 
-    <div class="app-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">Projects</h3>
-                <ul class="sidebar-list">
-                    <li class="sidebar-item active"><span class="project-color" style="background:#4F46E5"></span>Project Alpha</li>
-                    <li class="sidebar-item"><span class="project-color" style="background:#10B981"></span>Project Beta</li>
-                    <li class="sidebar-item"><span class="project-color" style="background:#F59E0B"></span>Marketing Campaign</li>
-                    <li class="sidebar-item"><span class="project-color" style="background:#EF4444"></span>Mobile App v2</li>
-                </ul>
-            </div>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">Team Members</h3>
-                <ul class="sidebar-list team-list">
-                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#4F46E5">TK</span>Talha Khan</li>
-                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#10B981">SM</span>Sarah Miller</li>
-                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#F59E0B">MJ</span>Mike Johnson</li>
-                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#EF4444">EW</span>Emily Wang</li>
-                    <li class="sidebar-item team-member"><span class="member-avatar" style="background:#8B5CF6">AR</span>Alex Rivera</li>
-                </ul>
-            </div>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">Filter by Label</h3>
-                <div class="label-filters">
-                    <button class="label-filter-btn active" data-label="all" onclick="filterByLabel('all', this)">All</button>
-                    <button class="label-filter-btn" data-label="Frontend" onclick="filterByLabel('Frontend', this)"><span class="label-dot" style="background:#3B82F6"></span>Frontend</button>
-                    <button class="label-filter-btn" data-label="Backend" onclick="filterByLabel('Backend', this)"><span class="label-dot" style="background:#10B981"></span>Backend</button>
-                    <button class="label-filter-btn" data-label="Bug" onclick="filterByLabel('Bug', this)"><span class="label-dot" style="background:#EF4444"></span>Bug</button>
-                    <button class="label-filter-btn" data-label="Feature" onclick="filterByLabel('Feature', this)"><span class="label-dot" style="background:#8B5CF6"></span>Feature</button>
-                    <button class="label-filter-btn" data-label="Design" onclick="filterByLabel('Design', this)"><span class="label-dot" style="background:#F59E0B"></span>Design</button>
-                    <button class="label-filter-btn" data-label="DevOps" onclick="filterByLabel('DevOps', this)"><span class="label-dot" style="background:#6366F1"></span>DevOps</button>
-                </div>
-            </div>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">Filter by Priority</h3>
-                <div class="label-filters">
-                    <button class="label-filter-btn active" data-priority="all" onclick="filterByPriority('all', this)">All</button>
-                    <button class="label-filter-btn" data-priority="High" onclick="filterByPriority('High', this)"><span class="label-dot" style="background:#EF4444"></span>High</button>
-                    <button class="label-filter-btn" data-priority="Medium" onclick="filterByPriority('Medium', this)"><span class="label-dot" style="background:#F59E0B"></span>Medium</button>
-                    <button class="label-filter-btn" data-priority="Low" onclick="filterByPriority('Low', this)"><span class="label-dot" style="background:#10B981"></span>Low</button>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Board -->
-        <main class="board" id="board">
-            <!-- Columns are rendered by JS -->
-        </main>
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="nav-left">
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="none"><rect x="2" y="2" width="24" height="24" rx="6" fill="rgba(255,255,255,.2)"/><rect x="5" y="6" width="5" height="16" rx="2" fill="#fff"/><rect x="12" y="6" width="5" height="11" rx="2" fill="#fff"/><rect x="19" y="6" width="5" height="8" rx="2" fill="#fff"/></svg>
+      TaskBoard Pro
     </div>
-
-    <!-- Card Detail Modal -->
-    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
-        <div class="modal" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <div class="modal-body">
-                <div class="modal-main">
-                    <div class="modal-header">
-                        <h2 class="modal-title" id="modalTitle">Task Title</h2>
-                        <span class="modal-column-badge" id="modalColumn">To Do</span>
-                    </div>
-                    <div class="modal-section">
-                        <h4>Description</h4>
-                        <p class="modal-description" id="modalDescription">Task description goes here.</p>
-                    </div>
-                    <div class="modal-section">
-                        <h4>Activity Log</h4>
-                        <div class="activity-log" id="modalActivity">
-                            <div class="activity-item">
-                                <span class="member-avatar small" style="background:#4F46E5">TK</span>
-                                <div><strong>Talha Khan</strong> created this task <small>2 days ago</small></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-section">
-                        <h4>Comments</h4>
-                        <div class="comments-section" id="modalComments"></div>
-                        <div class="comment-input-row">
-                            <input type="text" class="comment-input" id="commentInput" placeholder="Write a comment..." onkeypress="if(event.key==='Enter')addComment()">
-                            <button class="btn btn-primary btn-sm" onclick="addComment()">Send</button>
-                        </div>
-                    </div>
-                    <div class="modal-section">
-                        <h4>Attachments</h4>
-                        <div class="attachments" id="modalAttachments">
-                            <div class="attachment-item">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                <span>design-specs.pdf</span>
-                            </div>
-                            <div class="attachment-item">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                                <span>mockup-v2.png</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-sidebar">
-                    <div class="modal-sidebar-section">
-                        <h5>Assignees</h5>
-                        <div class="modal-assignees" id="modalAssignees"></div>
-                    </div>
-                    <div class="modal-sidebar-section">
-                        <h5>Labels</h5>
-                        <div class="modal-labels" id="modalLabels"></div>
-                    </div>
-                    <div class="modal-sidebar-section">
-                        <h5>Priority</h5>
-                        <div id="modalPriority"></div>
-                    </div>
-                    <div class="modal-sidebar-section">
-                        <h5>Due Date</h5>
-                        <input type="date" class="date-picker" id="modalDueDate">
-                    </div>
-                    <div class="modal-sidebar-section">
-                        <button class="btn btn-danger btn-sm" onclick="deleteCurrentCard()">Delete Card</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="project-dropdown">
+      <button class="project-btn" onclick="toggleProjectMenu()">
+        <span class="full">Website Redesign</span>
+        <span>&#9662;</span>
+      </button>
+      <div class="project-menu" id="projectMenu">
+        <a href="#" class="active">Website Redesign</a>
+        <a href="#">Mobile App v2</a>
+        <a href="#">API Integration</a>
+        <a href="#">Marketing Campaign</a>
+      </div>
     </div>
+  </div>
+  <div class="nav-right">
+    <button class="notif-btn" title="Notifications">
+      <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zm0 16a2 2 0 01-2-2h4a2 2 0 01-2 2z"/></svg>
+      <span class="notif-badge">3</span>
+    </button>
+    <div class="user-avatar" title="Talha Khan">TK</div>
+  </div>
+</nav>
 
-    <!-- Add Card Modal -->
-    <div class="modal-overlay" id="addCardOverlay" onclick="closeAddCard()">
-        <div class="modal modal-sm" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeAddCard()">&times;</button>
-            <h2 class="modal-title">Add New Card</h2>
-            <form id="addCardForm" onsubmit="submitNewCard(event)">
-                <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" id="newCardTitle" required placeholder="Enter task title">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="newCardDesc" rows="3" placeholder="Enter task description"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Priority</label>
-                    <select id="newCardPriority">
-                        <option value="Low">Low</option>
-                        <option value="Medium" selected>Medium</option>
-                        <option value="High">High</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Labels</label>
-                    <div class="checkbox-group">
-                        <label class="checkbox-label"><input type="checkbox" value="Frontend"> Frontend</label>
-                        <label class="checkbox-label"><input type="checkbox" value="Backend"> Backend</label>
-                        <label class="checkbox-label"><input type="checkbox" value="Bug"> Bug</label>
-                        <label class="checkbox-label"><input type="checkbox" value="Feature" checked> Feature</label>
-                        <label class="checkbox-label"><input type="checkbox" value="Design"> Design</label>
-                        <label class="checkbox-label"><input type="checkbox" value="DevOps"> DevOps</label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Due Date</label>
-                    <input type="date" id="newCardDue">
-                </div>
-                <div class="form-group">
-                    <label>Assignee</label>
-                    <select id="newCardAssignee">
-                        <option value="TK" data-color="#4F46E5" data-name="Talha Khan">Talha Khan</option>
-                        <option value="SM" data-color="#10B981" data-name="Sarah Miller">Sarah Miller</option>
-                        <option value="MJ" data-color="#F59E0B" data-name="Mike Johnson">Mike Johnson</option>
-                        <option value="EW" data-color="#EF4444" data-name="Emily Wang">Emily Wang</option>
-                        <option value="AR" data-color="#8B5CF6" data-name="Alex Rivera">Alex Rivera</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:8px;">Add Card</button>
-            </form>
-        </div>
+<!-- Board -->
+<div class="board-wrapper">
+  <div class="board" id="board"></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle"></h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
+    <div class="modal-body">
+      <div class="modal-section">
+        <label>Description</label>
+        <textarea id="modalDesc"></textarea>
+      </div>
+      <div class="modal-row">
+        <div class="modal-section">
+          <label>Priority</label>
+          <select id="modalPriority">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div class="modal-section">
+          <label>Assignee</label>
+          <select id="modalAssignee">
+            <option value="TK">Talha Khan</option>
+            <option value="AS">Aisha Syed</option>
+            <option value="MR">Mike Ross</option>
+            <option value="JD">Jane Doe</option>
+          </select>
+        </div>
+        <div class="modal-section">
+          <label>Due Date</label>
+          <input type="date" id="modalDue">
+        </div>
+      </div>
+      <div class="modal-section">
+        <label>Labels</label>
+        <div class="modal-labels" id="modalLabels">
+          <span class="modal-label-btn label-frontend" data-label="Frontend" onclick="toggleModalLabel(this)">Frontend</span>
+          <span class="modal-label-btn label-backend" data-label="Backend" onclick="toggleModalLabel(this)">Backend</span>
+          <span class="modal-label-btn label-bug" data-label="Bug" onclick="toggleModalLabel(this)">Bug</span>
+          <span class="modal-label-btn label-feature" data-label="Feature" onclick="toggleModalLabel(this)">Feature</span>
+        </div>
+      </div>
+      <div class="modal-section">
+        <label>Comments</label>
+        <div class="comments-list" id="modalComments"></div>
+        <div class="comment-input">
+          <input type="text" id="commentInput" placeholder="Write a comment..." onkeydown="if(event.key==='Enter')addComment()">
+          <button onclick="addComment()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <script src="app.js"></script>
+<script>
+const COLORS = ['#4F46E5','#0891b2','#d946ef','#ea580c','#16a34a','#dc2626','#8b5cf6','#0d9488'];
+
+function avatarColor(initials) {
+  let h = 0; for(let i=0;i<initials.length;i++) h = initials.charCodeAt(i)+((h<<5)-h);
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+
+const boardData = [
+  {
+    id:'todo', title:'To Do', cards:[
+      {id:'c1',title:'Design homepage hero section',desc:'Create a visually appealing hero section with CTA buttons and background imagery.',priority:'high',assignee:'TK',due:'2026-04-18',labels:['Frontend','Feature']},
+      {id:'c2',title:'Set up CI/CD pipeline',desc:'Configure GitHub Actions for automated testing and deployment.',priority:'medium',assignee:'MR',due:'2026-04-20',labels:['Backend']},
+      {id:'c3',title:'Write API documentation',desc:'Document all REST endpoints with request/response examples.',priority:'low',assignee:'AS',due:'2026-04-25',labels:['Backend']},
+      {id:'c4',title:'Fix mobile navigation bug',desc:'Hamburger menu not closing after link click on iOS Safari.',priority:'high',assignee:'JD',due:'2026-04-15',labels:['Frontend','Bug']}
+    ]
+  },
+  {
+    id:'progress', title:'In Progress', cards:[
+      {id:'c5',title:'Implement user authentication',desc:'Add JWT-based login and registration flow with email verification.',priority:'high',assignee:'MR',due:'2026-04-16',labels:['Backend','Feature']},
+      {id:'c6',title:'Build dashboard widgets',desc:'Create reusable chart and stats components for the dashboard page.',priority:'medium',assignee:'TK',due:'2026-04-19',labels:['Frontend','Feature']},
+      {id:'c7',title:'Database migration script',desc:'Migrate user table schema to support new profile fields.',priority:'medium',assignee:'AS',due:'2026-04-17',labels:['Backend']}
+    ]
+  },
+  {
+    id:'review', title:'In Review', cards:[
+      {id:'c8',title:'Search functionality',desc:'Full-text search across projects and tasks with filters.',priority:'medium',assignee:'JD',due:'2026-04-14',labels:['Frontend','Backend']},
+      {id:'c9',title:'Fix date picker styling',desc:'Date picker overflows container on small viewports.',priority:'low',assignee:'TK',due:'2026-04-13',labels:['Frontend','Bug']}
+    ]
+  },
+  {
+    id:'done', title:'Done', cards:[
+      {id:'c10',title:'Project setup & scaffolding',desc:'Initialize repo, configure linting, set up folder structure.',priority:'low',assignee:'MR',due:'2026-04-05',labels:['Backend']},
+      {id:'c11',title:'Design system tokens',desc:'Define colors, typography, spacing, and shadow tokens.',priority:'medium',assignee:'TK',due:'2026-04-08',labels:['Frontend','Feature']},
+      {id:'c12',title:'Landing page layout',desc:'Build responsive grid layout for the landing page.',priority:'high',assignee:'AS',due:'2026-04-10',labels:['Frontend']}
+    ]
+  }
+];
+
+const sampleComments = [
+  {author:'Aisha Syed',initials:'AS',time:'2 hours ago',text:'I\'ve started looking into this. The initial approach looks solid, but we might want to consider edge cases for older browsers.'},
+  {author:'Mike Ross',initials:'MR',time:'45 minutes ago',text:'Agreed. I can help with testing once the implementation is ready. Let me know if you need any backend changes.'}
+];
+
+let currentCard = null;
+let cardIdCounter = 100;
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  boardData.forEach(col => {
+    const colEl = document.createElement('div');
+    colEl.className = 'column';
+    colEl.innerHTML = `
+      <div class="column-header">
+        <span class="column-title">${col.title} <span class="card-count">${col.cards.length}</span></span>
+      </div>
+      <div class="column-body" id="col-${col.id}"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event,'${col.id}')">
+        ${col.cards.map(c => renderCard(c)).join('')}
+      </div>
+      <button class="add-card-btn" onclick="showAddForm('${col.id}')">+ Add a card</button>
+      <div class="add-form" id="form-${col.id}">
+        <input type="text" placeholder="Enter card title..." id="input-${col.id}" onkeydown="if(event.key==='Enter')submitCard('${col.id}')">
+        <div class="add-form-actions">
+          <button class="btn-add" onclick="submitCard('${col.id}')">Add Card</button>
+          <button class="btn-cancel" onclick="hideAddForm('${col.id}')">Cancel</button>
+        </div>
+      </div>
+    `;
+    board.appendChild(colEl);
+  });
+}
+
+function renderCard(c) {
+  const labelHtml = c.labels.map(l => `<span class="label label-${l.toLowerCase()}">${l}</span>`).join('');
+  return `<div class="card" draggable="true" data-id="${c.id}"
+    ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openModal('${c.id}')">
+    <div class="card-labels">${labelHtml}</div>
+    <div class="card-title">${c.title}</div>
+    <div class="card-desc">${c.desc}</div>
+    <div class="card-meta">
+      <div class="card-meta-left">
+        <span class="priority priority-${c.priority}">${c.priority}</span>
+        <span class="due-date">
+          <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 011 1v3a1 1 0 11-2 0V8a1 1 0 011-1z"/></svg>
+          ${formatDate(c.due)}
+        </span>
+      </div>
+      <div class="assignee" style="background:${avatarColor(c.assignee)}">${c.assignee}</div>
+    </div>
+  </div>`;
+}
+
+function formatDate(d){const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+
+// Drag & Drop
+let draggedId = null;
+
+function handleDragStart(e){
+  draggedId = e.target.dataset.id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function handleDragEnd(e){
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.column-body').forEach(c=>c.classList.remove('drag-over'));
+  document.querySelectorAll('.drop-placeholder').forEach(p=>p.remove());
+}
+function handleDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  const body = e.currentTarget;
+  body.classList.add('drag-over');
+  if(!body.querySelector('.drop-placeholder')){
+    const ph = document.createElement('div');
+    ph.className='drop-placeholder';
+    body.appendChild(ph);
+  }
+}
+function handleDragLeave(e){
+  const body = e.currentTarget;
+  if(!body.contains(e.relatedTarget)){
+    body.classList.remove('drag-over');
+    body.querySelectorAll('.drop-placeholder').forEach(p=>p.remove());
+  }
+}
+function handleDrop(e, colId){
+  e.preventDefault();
+  if(!draggedId) return;
+  let card, srcColIdx;
+  boardData.forEach((col,i)=>{
+    const ci = col.cards.findIndex(c=>c.id===draggedId);
+    if(ci>-1){card=col.cards.splice(ci,1)[0];srcColIdx=i}
+  });
+  if(card){
+    const destCol = boardData.find(c=>c.id===colId);
+    destCol.cards.push(card);
+    renderBoard();
+  }
+  draggedId=null;
+}
+
+// Add Card
+function showAddForm(colId){
+  document.getElementById('form-'+colId).classList.add('open');
+  document.getElementById('input-'+colId).focus();
+}
+function hideAddForm(colId){
+  document.getElementById('form-'+colId).classList.remove('open');
+  document.getElementById('input-'+colId).value='';
+}
+function submitCard(colId){
+  const input = document.getElementById('input-'+colId);
+  const title = input.value.trim();
+  if(!title) return;
+  const col = boardData.find(c=>c.id===colId);
+  col.cards.push({
+    id:'c'+(++cardIdCounter), title, desc:'No description yet.', priority:'medium',
+    assignee:'TK', due:new Date().toISOString().slice(0,10), labels:['Feature']
+  });
+  hideAddForm(colId);
+  renderBoard();
+}
+
+// Modal
+function openModal(cardId){
+  let card;
+  boardData.forEach(col=>{col.cards.forEach(c=>{if(c.id===cardId)card=c})});
+  if(!card) return;
+  currentCard = card;
+  document.getElementById('modalTitle').textContent = card.title;
+  document.getElementById('modalDesc').value = card.desc;
+  document.getElementById('modalPriority').value = card.priority;
+  document.getElementById('modalAssignee').value = card.assignee;
+  document.getElementById('modalDue').value = card.due;
+
+  // Labels
+  document.querySelectorAll('.modal-label-btn').forEach(btn=>{
+    btn.classList.toggle('active', card.labels.includes(btn.dataset.label));
+  });
+
+  // Comments
+  const commentsEl = document.getElementById('modalComments');
+  commentsEl.innerHTML = sampleComments.map(c=>`
+    <div class="comment">
+      <div class="comment-avatar" style="background:${avatarColor(c.initials)}">${c.initials}</div>
+      <div class="comment-body">
+        <span class="comment-author">${c.author}<span class="comment-time">${c.time}</span></span>
+        <div class="comment-text">${c.text}</div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('commentInput').value='';
+  document.getElementById('modalOverlay').classList.add('open');
+
+  // Live update listeners
+  document.getElementById('modalDesc').onchange = ()=>{ card.desc=document.getElementById('modalDesc').value; renderBoard(); };
+  document.getElementById('modalPriority').onchange = ()=>{ card.priority=document.getElementById('modalPriority').value; renderBoard(); };
+  document.getElementById('modalAssignee').onchange = ()=>{ card.assignee=document.getElementById('modalAssignee').value; renderBoard(); };
+  document.getElementById('modalDue').onchange = ()=>{ card.due=document.getElementById('modalDue').value; renderBoard(); };
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  currentCard=null;
+}
+
+function toggleModalLabel(el){
+  if(!currentCard) return;
+  const label = el.dataset.label;
+  const idx = currentCard.labels.indexOf(label);
+  if(idx>-1) currentCard.labels.splice(idx,1); else currentCard.labels.push(label);
+  el.classList.toggle('active');
+  renderBoard();
+}
+
+function addComment(){
+  const input = document.getElementById('commentInput');
+  const text = input.value.trim();
+  if(!text) return;
+  const commentsEl = document.getElementById('modalComments');
+  commentsEl.innerHTML += `
+    <div class="comment">
+      <div class="comment-avatar" style="background:${avatarColor('TK')}">TK</div>
+      <div class="comment-body">
+        <span class="comment-author">Talha Khan<span class="comment-time">Just now</span></span>
+        <div class="comment-text">${text.replace(/</g,'&lt;')}</div>
+      </div>
+    </div>
+  `;
+  input.value='';
+}
+
+// Project dropdown
+function toggleProjectMenu(){
+  document.getElementById('projectMenu').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.project-dropdown')) document.getElementById('projectMenu').classList.remove('open');
+});
+
+// Keyboard
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// Init
+renderBoard();
+</script>
 </body>
 </html>
